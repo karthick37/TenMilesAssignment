@@ -1,0 +1,10 @@
+{
+    "pgAdmin":
+    {
+        "user": "",
+        "pwd":"energy",
+        "host": "localhost",
+        "hostIP":"127.0.0.1",
+        "port":"54637"
+    }
+}
