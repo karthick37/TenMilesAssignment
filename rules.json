@@ -1,0 +1,66 @@
+    {
+        "1":
+        {
+            "predicate": "All",
+            "criteria": 
+            [
+                {
+                    "header": "mail_from",
+                    "filter": "contains",
+                    "value": "kuku"
+                },
+                {
+                    "header": "mail_from",
+                    "filter": "contains",
+                    "value": "no-reply@youtube.com"
+                },
+                {
+                    "header": "mail_from",
+                    "filter": "contains",
+                    "value": "noreply-utos@google.com"
+                }
+            ],
+            "action": "Mark as read"
+        },
+        "2":
+        {
+            "predicate": "Any",
+            "criteria": 
+            [
+                {
+                    "header": "mail_from",
+                    "filter": "equals",
+                    "value": "no-reply@accounts.google.com"
+                },
+                {
+                    "header": "subject",
+                    "filter": "contains",
+                    "value": "Terms of Service"
+                },
+                {
+                    "header": "lable",
+                    "filter": "does not contains",
+                    "value": "UNREAD"
+                }
+            ],
+            "action": "Mark as read"
+        },
+        "3":
+        {
+            "predicate": "Any",
+            "criteria": 
+            [
+                {
+                    "header": "mail_from",
+                    "filter": "contains",
+                    "value": "sharon@happyfox.recruiterbox.com"
+                },
+                {
+                    "header": "to_mail",
+                    "filter": "does not equals",
+                    "value": "karthickarun37@gmail.com"
+                }
+            ],
+            "action": "Add to Label"
+        }
+    }
