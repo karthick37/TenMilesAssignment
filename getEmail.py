@@ -55,24 +55,46 @@ def returnVal(headers,param):
             return str(header['value'])
             break
 
-def getMsgID(header,filter,value):
+def getMsgID(criterias,operand):
 
-    #mysql connector having some issues with Select Queries. Using a diff package for select querirs
+    #mysql connector having some issues with Select Queries. Using a diff package for select queries
     conn = pymysql.connect(host='localhost', port=3306, user='root', passwd='', db='db_gmail')
     cur = conn.cursor()
 
-    if filter == "contains":
-        searchQuery = "SELECT mail_id FROM tbl_mail WHERE mail_from LIKE %s"
-        cur.execute(searchQuery,"%"+value+"%")
-    if filter == "does not contains":
-        searchQuery = "SELECT mail_id FROM tbl_mail WHERE mail_from NOT LIKE %s"
-        cur.execute(searchQuery,"%"+value+"%")
-    if filter == "equals":
-        searchQuery = "SELECT mail_id FROM tbl_mail WHERE mail_from = %s"
-        cur.execute(searchQuery,value)
-    if filter == "does not equals":
-        searchQuery = "SELECT mail_id FROM tbl_mail WHERE %s != %s"
-        cur.execute(searchQuery,value)
+    print(criterias)
+
+    #mergecondition
+    condition = ''
+    for criteria in criterias:
+        condition += criteria['header']
+        if criteria['filter'] == "contains":
+            condition += " LIKE '%"+criteria['value']+"%' "
+            if criteria != criterias[-1]:
+                condition += " "+operand+" "
+            else:
+                pass
+        elif criteria['filter'] == "does not contains":
+            condition += " NOT LIKE '%"+criteria['value']+"%' "
+            if criteria != criterias[-1]:
+                condition += " "+operand+" "
+            else:
+                pass
+        elif criteria['filter'] == "equals":
+            condition += " = '%"+criteria['value']+"%' "
+            if criteria != criterias[-1]:
+                condition += " "+operand+" "
+            else:
+                pass
+        elif criteria['filter'] == "does not equals":
+            condition += " = '%"+criteria['value']+"%' "
+            if criteria != criterias[-1]:
+                condition += " "+operand+" "
+            else:
+                pass
+
+    searchQuery = "SELECT mail_id FROM tbl_mail WHERE "+condition
+    print(searchQuery)
+    cur.execute(searchQuery)
     
     ids = []
     for row in cur:
@@ -160,8 +182,10 @@ def main():
 
     def criteriaAction(action,messageIds):
         for messageId in messageIds:
-            print(messageIds)
-
+            message = service.users().messages().modify(userId='me', id=messageId,
+                                                body=action).execute()
+            label_ids = message['labelIds']
+            
     #Play with sql data
     #import rules
     with open('rules.json') as ruleFile:
@@ -169,17 +193,17 @@ def main():
 
         for rule in rules.values():
             if rule['predicate'] == "All":
-                action = rule['action']
-                for criteria in rule['criteria']:                    
-                    header = criteria['header']
-                    value = criteria['value']
-                    filter = criteria['filter']
-                    messageIds = getMsgID(header,filter,value)
-                    
-                    if messageIds != '':
-                        TakeAction = criteriaAction(action,messageIds)
-                    else:
-                        print("No Id Found for this criteria")    
+                operand = "AND"
+            elif rule['predicate'] == "Any":
+                operand = "OR"
+            action = rule['action']
+            criteria = rule['criteria']
+            messageIds = getMsgID(criteria,operand)
+                
+            if messageIds != '':
+                TakeAction = criteriaAction(action,messageIds)
+            else:
+                print("No Id Found for this criteria")    
 
 
 if __name__ == '__main__':

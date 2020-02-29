@@ -7,20 +7,20 @@
                 {
                     "header": "mail_from",
                     "filter": "contains",
-                    "value": "kuku"
+                    "value": "notifications@github.com"
                 },
                 {
-                    "header": "mail_from",
+                    "header": "mail_subject",
                     "filter": "contains",
-                    "value": "no-reply@youtube.com"
+                    "value": "ant-design"
                 },
                 {
-                    "header": "mail_from",
+                    "header": "mail_lables",
                     "filter": "contains",
-                    "value": "noreply-utos@google.com"
+                    "value": "UNREAD"
                 }
             ],
-            "action": "Mark as read"
+            "action": "UNREAD"
         },
         "2":
         {
@@ -33,17 +33,17 @@
                     "value": "no-reply@accounts.google.com"
                 },
                 {
-                    "header": "subject",
+                    "header": "mail_subject",
                     "filter": "contains",
                     "value": "Terms of Service"
                 },
                 {
-                    "header": "lable",
+                    "header": "mail_lables",
                     "filter": "does not contains",
                     "value": "UNREAD"
                 }
             ],
-            "action": "Mark as read"
+            "action": "THRASH"
         },
         "3":
         {
@@ -56,11 +56,11 @@
                     "value": "sharon@happyfox.recruiterbox.com"
                 },
                 {
-                    "header": "to_mail",
+                    "header": "mail_to",
                     "filter": "does not equals",
                     "value": "karthickarun37@gmail.com"
                 }
             ],
-            "action": "Add to Label"
+            "action": "IMPORTANT"
         }
     }
