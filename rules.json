@@ -20,7 +20,7 @@
                     "value": "UNREAD"
                 }
             ],
-            "action": "UNREAD"
+            "action": "IMPORTANT"
         },
         "2":
         {
@@ -61,6 +61,6 @@
                     "value": "karthickarun37@gmail.com"
                 }
             ],
-            "action": "IMPORTANT"
+            "action": "STARRED"
         }
     }
