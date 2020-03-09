@@ -4,33 +4,47 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+import mysql.connector
+from mysql.connector import Error
 import base64
 import json
 import pymysql
 
 #Connect to mySQL
-with open('source\credentials\mysql.json',"r") as f:
-    creds = json.load(f)
-    _user = creds['sql']['user']
-    _pwd = creds['sql']['pwd']
-    _host = creds['sql']['host']
-    _ip = creds['sql']['ip']
-    _db = creds['sql']['db']
+with open('mySQL_creds.json') as f:
+    sqlCreds = json.load(f)
+    mySqlUser = sqlCreds['mySqlAdmin']['user']
+    mySqlPwd = sqlCreds['mySqlAdmin']['pwd']
+    mySqlHost = sqlCreds['mySqlAdmin']['host']
+    mySqlHostIp = sqlCreds['mySqlAdmin']['hostIP']
+    mySqlDB = sqlCreds['mySqlAdmin']['db']
 
-conn = pymysql.connect(host=_ip, port=3306, user=_user, passwd=_pwd, db=_db)
-
-def updateMails(data):
-    global conn
-    #Sql queries
-    mailInsert = "INSERT INTO tbl_mail (`mail_id`, `mail_lables`, `mail_snippet`, `mail_to`, `mail_from`,`mail_datetime`,`mail_subject`) "\
+connection = mysql.connector.connect(user=mySqlUser, password=mySqlPwd,
+                                    host=mySqlHost,
+                                    database=mySqlDB)
+def insertRows(data):
+    # take creds from json 
+    
+    insertQuery = "INSERT INTO tbl_mail (`mail_id`, `mail_lables`, `mail_snippet`, `mail_to`, `mail_from`,`mail_datetime`,`mail_subject`) "\
                                    " VALUES (%s, %s, %s, %s, %s, %s, %s) "
-    tblTruncate = "TRUNCATE tbl_mail"
-    cursor = conn.cursor()
-    #Truncate everytime to avoid MessageID conflict
-    cursor.execute(tblTruncate)
-    cursor.executemany(mailInsert,data)
-    print(mailInsert)
-    conn.commit()
+    truncate = "TRUNCATE tbl_mail"
+    try:
+        global connection
+        cursor = connection.cursor()
+
+        #Truncate everytime to avoid MessageID conflict
+        cursor.execute(truncate)
+        cursor.executemany(insertQuery,data)
+        print(insertQuery)
+        connection.commit()
+    except mysql.connector.Error as error:
+        print("Failed to insert into MySQL table {}".format(error))
+    finally:
+        if (connection.is_connected()):
+            cursor.close()
+            connection.close()
+        else:
+            print('not connected')
  
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -42,9 +56,14 @@ def returnVal(headers,param):
             break
 
 def getMsgID(criterias,operand):
+
+    #mysql connector having some issues with Select Queries. Using a diff package for select queries
+    conn = pymysql.connect(host='localhost', port=3306, user='root', passwd='', db='db_gmail')
     cur = conn.cursor()
+
     print(criterias)
-    #Condition to 
+
+    #mergecondition
     condition = ''
     for criteria in criterias:
         condition += criteria['header']
@@ -100,7 +119,7 @@ def main():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'source\credentials\gmail.json', SCOPES)
+                'credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
@@ -149,12 +168,17 @@ def main():
             subjectMail = returnVal(headers,"Subject")
             mail.append(subjectMail)
 
+            # body = msg['body']['data']
+            # decodedmsg = base64.b64decode(body)
+            # rawMsgStr = str(decodedmsg, "utf-8")
+
             print(mail)
             #append mail
             mailList.append(mail)
 
-        #updateMails
-        updateMails(mailList)
+        #insertRows
+        # mailList = tuple(i for i in mailList)
+        insertRows(mailList)
 
     def criteriaAction(action,messageIds):
         for messageId in messageIds:
@@ -162,6 +186,7 @@ def main():
                                                 body=action).execute()
             label_ids = message['labelIds']
             
+    #Play with sql data
     #import rules
     with open('rules.json') as ruleFile:
         rules = json.load(ruleFile)
@@ -176,7 +201,7 @@ def main():
             messageIds = getMsgID(criteria,operand)
                 
             if messageIds != '':
-                applyRules = criteriaAction(action,messageIds)
+                TakeAction = criteriaAction(action,messageIds)
             else:
                 print("No Id Found for this criteria")    
 
