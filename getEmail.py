@@ -44,7 +44,7 @@ def returnVal(headers,param):
 def getMsgID(criterias,operand):
     cur = conn.cursor()
     print(criterias)
-    #Condition to 
+    #Condition to filter results and get message ID
     condition = ''
     for criteria in criterias:
         condition += criteria['header']
@@ -52,27 +52,20 @@ def getMsgID(criterias,operand):
             condition += " LIKE '%"+criteria['value']+"%' "
             if criteria != criterias[-1]:
                 condition += " "+operand+" "
-            else:
-                pass
         elif criteria['filter'] == "does not contains":
             condition += " NOT LIKE '%"+criteria['value']+"%' "
             if criteria != criterias[-1]:
                 condition += " "+operand+" "
-            else:
-                pass
         elif criteria['filter'] == "equals":
             condition += " = '%"+criteria['value']+"%' "
             if criteria != criterias[-1]:
                 condition += " "+operand+" "
-            else:
-                pass
         elif criteria['filter'] == "does not equals":
             condition += " = '%"+criteria['value']+"%' "
             if criteria != criterias[-1]:
                 condition += " "+operand+" "
-            else:
-                pass
-
+        else:
+            print("Err: Condition does not exist")
     searchQuery = "SELECT mail_id FROM tbl_mail WHERE "+condition
     print(searchQuery)
     cur.execute(searchQuery)
@@ -156,10 +149,9 @@ def main():
         #updateMails
         updateMails(mailList)
 
-    def criteriaAction(action,messageIds):
+    def applyCriteria(action,messageIds):
         for messageId in messageIds:
-            message = service.users().messages().modify(userId='me', id=messageId,
-                                                body=action).execute()
+            message = service.users().messages().modify(userId='me', id=messageId,body=action).execute()
             label_ids = message['labelIds']
             
     #import rules
@@ -176,10 +168,9 @@ def main():
             messageIds = getMsgID(criteria,operand)
                 
             if messageIds != '':
-                applyRules = criteriaAction(action,messageIds)
+                applyRules = applyCriteria(action,messageIds)
             else:
-                print("No Id Found for this criteria")    
-
+                print("Err: No Id Found for this criteria")    
 
 if __name__ == '__main__':
     main()
